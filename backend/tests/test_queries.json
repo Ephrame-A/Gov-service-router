@@ -1,0 +1,128 @@
+[
+  {
+    "query": "my shop's tax certificate expired",
+    "expected_service": "Business Tax Certificate Renewal",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I want to get a passport",
+    "expected_service": "New Passport Application",
+    "expected_status": "matched"
+  },
+  {
+    "query": "renew my driving license",
+    "expected_service": "Driver's License Renewal",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I need a birth certificate for my baby",
+    "expected_service": "Birth Certificate",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I want to register a new company",
+    "expected_service": "New Business License",
+    "expected_status": "matched"
+  },
+  {
+    "query": "how to import electronics into Ethiopia",
+    "expected_service": "Import Permit",
+    "expected_status": "matched"
+  },
+  {
+    "query": "my water meter is broken",
+    "expected_service": "Water Meter Replacement",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I want to invest in Ethiopia",
+    "expected_service": "New Investment Permit",
+    "expected_status": "matched"
+  },
+  {
+    "query": "transfer car ownership to another person",
+    "expected_service": "Vehicle Ownership Transfer",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I need to build a house and need permission",
+    "expected_service": "Building Construction Permit",
+    "expected_status": "matched"
+  },
+  {
+    "query": "register my marriage officially",
+    "expected_service": "Marriage Certificate",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I lost my passport and need a new one",
+    "expected_service": "Lost Passport Replacement",
+    "expected_status": "matched"
+  },
+  {
+    "query": "my package is stuck at customs",
+    "expected_service": "Import Customs Clearance",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I need water connection for my new building",
+    "expected_service": "New Water Connection",
+    "expected_status": "matched"
+  },
+  {
+    "query": "get land title deed for my plot",
+    "expected_service": "Land Title Deed Issuance",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I want to export coffee from Ethiopia",
+    "expected_service": "Export License",
+    "expected_status": "matched"
+  },
+  {
+    "query": "extend my tourist visa",
+    "expected_service": "Visa Extension",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I want to renew my license",
+    "expected_service": null,
+    "expected_status": "needs_clarification",
+    "note": "Ambiguous — could be driver's license, business license, or other"
+  },
+  {
+    "query": "I need to register for VAT",
+    "expected_service": "VAT Registration",
+    "expected_status": "matched"
+  },
+  {
+    "query": "there is a broken water pipe in my street",
+    "expected_service": "Report Water Leak or Pipe Burst",
+    "expected_status": "matched"
+  },
+  {
+    "query": "how to get a death certificate",
+    "expected_service": "Death Certificate",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I need a residence permit to work in Ethiopia",
+    "expected_service": "Residence Permit Application",
+    "expected_status": "matched"
+  },
+  {
+    "query": "upgrade my driving license to truck category",
+    "expected_service": "License Category Upgrade",
+    "expected_status": "matched"
+  },
+  {
+    "query": "connect my building to the sewer system",
+    "expected_service": "Sewerage Connection",
+    "expected_status": "matched"
+  },
+  {
+    "query": "I want to renovate my house",
+    "expected_service": "Building Renovation Permit",
+    "expected_status": "matched"
+  }
+]
