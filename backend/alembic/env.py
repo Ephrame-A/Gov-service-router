@@ -1,10 +1,14 @@
 """Alembic environment configuration for async SQLAlchemy."""
 
 import asyncio
+import sys
 from logging.config import fileConfig
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from alembic import context
-from sqlalchemy import pool
+from sqlalchemy import pool, text
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.db.models import Base
@@ -32,6 +36,8 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection):
+    connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+    connection.commit()
     context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
         context.run_migrations()

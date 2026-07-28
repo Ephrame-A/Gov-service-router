@@ -137,6 +137,7 @@ class CitizenQuery(Base):
         Boolean, nullable=False, server_default=text("false")
     )
     feedback: Mapped[str | None] = mapped_column(Text)  # 'correct' | 'incorrect' | NULL
+    conversation_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )

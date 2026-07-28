@@ -5,6 +5,7 @@ Run: python -m app.db.seed
 
 import asyncio
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Base, Department, Institution, Office, Service
@@ -764,15 +765,263 @@ SEED_DATA = [
             },
         ],
     },
+    {
+        "institution": {
+            "name": "Ethiopian Electric Utility",
+            "type": "federal",
+            "description": "Provides electricity connection and service support across Ethiopia.",
+            "is_approved": True,
+        },
+        "offices": [
+            {
+                "address": "Bole Road, Addis Ababa",
+                "lat": 8.9898,
+                "lng": 38.7951,
+                "working_hours": "Mon-Fri 8:30-17:00",
+                "contact_phone": "+251-11-551-4000",
+                "contact_email": "customerservice@eeu.gov.et",
+            }
+        ],
+        "departments": [
+            {
+                "name": "Customer Service",
+                "description": "Handles new service connections and account issues.",
+                "services": [
+                    {
+                        "name": "New Electricity Connection",
+                        "description": "Apply for electricity supply to a new property or building.",
+                        "example_phrasings": [
+                            "I need electricity connection",
+                            "new power connection for my house",
+                            "connect electricity to my building",
+                            "how to get electric service",
+                            "apply for power line",
+                        ],
+                        "required_documents": ["Title deed", "Kebele ID", "Building permit", "Site plan"],
+                        "typical_duration": "2-3 weeks",
+                        "fees": "Varies by load",
+                    },
+                    {
+                        "name": "Electricity Meter Replacement",
+                        "description": "Replace a faulty electricity meter or update meter details.",
+                        "example_phrasings": [
+                            "my electricity meter is broken",
+                            "replace my power meter",
+                            "faulty electricity meter",
+                            "meter not working",
+                        ],
+                        "required_documents": ["Account number", "Kebele ID", "Photo of meter"],
+                        "typical_duration": "3-5 business days",
+                        "fees": "Varies",
+                    },
+                    {
+                        "name": "Power Outage Report",
+                        "description": "Report a power outage or service interruption in your area.",
+                        "example_phrasings": [
+                            "there is no electricity in my area",
+                            "report power outage",
+                            "electricity cut off",
+                            "power interruption",
+                        ],
+                        "required_documents": ["Account number or location details"],
+                        "typical_duration": "24 hours",
+                        "fees": "Free",
+                    },
+                ],
+            },
+        ],
+    },
+    {
+        "institution": {
+            "name": "Ministry of Labor and Skills",
+            "type": "federal",
+            "description": "Oversees employment permits, labor inspections, and skills certification.",
+            "is_approved": True,
+        },
+        "offices": [
+            {
+                "address": "Meskel Square, Addis Ababa",
+                "lat": 9.0111,
+                "lng": 38.7608,
+                "working_hours": "Mon-Fri 8:30-17:00",
+                "contact_phone": "+251-11-551-2800",
+                "contact_email": "labor@mol.gov.et",
+            }
+        ],
+        "departments": [
+            {
+                "name": "Employment Services",
+                "description": "Handles work permits, labor clearance, and recruitment services.",
+                "services": [
+                    {
+                        "name": "Work Permit Application",
+                        "description": "Apply for a work permit for employment in Ethiopia.",
+                        "example_phrasings": [
+                            "I need a work permit",
+                            "apply for a work permit",
+                            "job permit application",
+                            "employment authorization",
+                            "work authorization",
+                        ],
+                        "required_documents": ["Passport", "Employment contract", "Company registration", "CV"],
+                        "typical_duration": "1-2 weeks",
+                        "fees": "Varies",
+                    },
+                    {
+                        "name": "Labor Complaint Filing",
+                        "description": "File complaints for unpaid wages, unsafe conditions, or unfair dismissal.",
+                        "example_phrasings": [
+                            "my employer isn't paying salary",
+                            "I want to report labor abuse",
+                            "file a labor complaint",
+                            "unfair dismissal complaint",
+                        ],
+                        "required_documents": ["Employment contract", "Payslips", "ID", "Written complaint"],
+                        "typical_duration": "3-7 business days",
+                        "fees": "Free",
+                    },
+                ],
+            },
+        ],
+    },
+    {
+        "institution": {
+            "name": "Ministry of Health",
+            "type": "federal",
+            "description": "Regulates health facilities, food safety, and public health permits.",
+            "is_approved": True,
+        },
+        "offices": [
+            {
+                "address": "Gulele Sub-city, Addis Ababa",
+                "lat": 9.0732,
+                "lng": 38.7404,
+                "working_hours": "Mon-Fri 8:30-17:00",
+                "contact_phone": "+251-11-551-7000",
+                "contact_email": "health@mog.gov.et",
+            }
+        ],
+        "departments": [
+            {
+                "name": "Health Facility Licensing",
+                "description": "Approves medical and health service facilities.",
+                "services": [
+                    {
+                        "name": "Clinic License Application",
+                        "description": "Obtain a license to operate a private clinic or medical center.",
+                        "example_phrasings": [
+                            "open a clinic",
+                            "I want to start a private clinic",
+                            "medical facility license",
+                            "clinic permit application",
+                        ],
+                        "required_documents": ["Professional license", "Building permit", "Inspection report", "Business registration"],
+                        "typical_duration": "2-4 weeks",
+                        "fees": "Varies",
+                    },
+                    {
+                        "name": "Food Establishment Permit",
+                        "description": "Obtain a public health permit for restaurants and food businesses.",
+                        "example_phrasings": [
+                            "open a restaurant",
+                            "food establishment permit",
+                            "public health license for café",
+                            "restaurant inspection certificate",
+                        ],
+                        "required_documents": ["Business license", "Inspection report", "Site plan", "Health clearance"],
+                        "typical_duration": "1-2 weeks",
+                        "fees": "Varies",
+                    },
+                ],
+            },
+        ],
+    },
+    {
+        "institution": {
+            "name": "Federal Police Commission",
+            "type": "federal",
+            "description": "Handles police clearances, traffic accident reporting, and criminal complaints.",
+            "is_approved": True,
+        },
+        "offices": [
+            {
+                "address": "Gulele, Addis Ababa",
+                "lat": 9.0389,
+                "lng": 38.7575,
+                "working_hours": "24 Hours",
+                "contact_phone": "+251-11-551-1234",
+                "contact_email": "info@police.gov.et",
+            }
+        ],
+        "departments": [
+            {
+                "name": "Traffic Affairs",
+                "description": "Processes traffic accident reports, traffic fines, and related services.",
+                "services": [
+                    {
+                        "name": "Traffic Accident Report",
+                        "description": "Report a road traffic accident and obtain an official incident report.",
+                        "example_phrasings": [
+                            "I was in a car accident",
+                            "report a traffic accident",
+                            "need police accident report",
+                            "road accident incident report",
+                        ],
+                        "required_documents": ["Driver's license", "Vehicle registration", "ID", "Photos of scene"],
+                        "typical_duration": "Same day",
+                        "fees": "Free",
+                    },
+                    {
+                        "name": "Lost Vehicle Plate Report",
+                        "description": "Report a lost or stolen vehicle plate.",
+                        "example_phrasings": [
+                            "my car plate is missing",
+                            "stolen vehicle plate",
+                            "report lost number plate",
+                            "replace missing plate",
+                        ],
+                        "required_documents": ["Vehicle registration", "Police report", "ID"],
+                        "typical_duration": "1-2 days",
+                        "fees": "Free",
+                    },
+                ],
+            },
+            {
+                "name": "Criminal Investigation",
+                "description": "Handles theft reports, crime complaints, and investigation support.",
+                "services": [
+                    {
+                        "name": "Theft Report Filing",
+                        "description": "File a report for stolen property or burglary.",
+                        "example_phrasings": [
+                            "someone stole my phone",
+                            "report theft",
+                            "file a burglary complaint",
+                            "stolen property report",
+                        ],
+                        "required_documents": ["ID", "Police report (if any)", "Description of item"],
+                        "typical_duration": "Same day",
+                        "fees": "Free",
+                    },
+                ],
+            },
+        ],
+    },
 ]
 
 
 async def seed_database():
     """Insert all seed data into the database."""
     async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         await conn.run_sync(Base.metadata.create_all)
 
     async with async_session() as session:
+        # Reset the catalog before reseeding so repeated runs do not create duplicates.
+        for table_name in ["users", "citizen_queries", "services", "departments", "offices", "institutions"]:
+            await session.execute(text(f"DELETE FROM {table_name}"))
+        await session.commit()
+
         for item in SEED_DATA:
             # Create institution
             inst_data = item["institution"]
@@ -819,6 +1068,32 @@ async def seed_database():
             result = await session.execute(select(func.count()).select_from(model))
             count = result.scalar()
             print(f"  {name}: {count}")
+
+        # Seed default admin and officer accounts (skip if already exist)
+        from app.auth import hash_password
+        from app.db.models import User
+
+        existing = await session.execute(select(User).limit(1))
+        if not existing.scalar_one_or_none():
+            inst_result = await session.execute(select(Institution).limit(1))
+            first_inst = inst_result.scalar_one()
+            session.add(
+                User(
+                    email="admin@govrouter.et",
+                    password_hash=hash_password("admin123"),
+                    role="admin",
+                )
+            )
+            session.add(
+                User(
+                    email="officer@govrouter.et",
+                    password_hash=hash_password("officer123"),
+                    role="officer",
+                    institution_id=first_inst.id,
+                )
+            )
+            await session.commit()
+            print("  Users: 2 (admin@govrouter.et / officer@govrouter.et)")
 
 
 async def main():
