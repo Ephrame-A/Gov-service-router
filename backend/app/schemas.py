@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
 
 
 # --- Query ---
@@ -40,10 +40,11 @@ class QueryStatus(str, Enum):
 class QueryResponse(BaseModel):
     status: QueryStatus
     recommendation: Optional[ServiceRecommendation] = None
+    recommendations: list[ServiceRecommendation] = []  # multi-intent matches
     alternatives: list[ServiceRecommendation] = []
-    question: Optional[str] = None  # for needs_clarification
+    question: Optional[str] = None
     conversation_id: Optional[str] = None
-    top_candidates: list[ServiceRecommendation] = []  # for no_match
+    top_candidates: list[ServiceRecommendation] = []
     query_id: str
 
 
@@ -62,6 +63,12 @@ class Intent(BaseModel):
     category: str
     sub_intent: str
     entities: dict = {}
+    query_text: str = ""  # sub-query text for multi-intent
+
+
+class IntentExtractionResult(BaseModel):
+    intents: list[Intent]
+    is_multi_intent: bool = False
 
 
 class Candidate(BaseModel):
@@ -85,3 +92,109 @@ class RerankResult(BaseModel):
     confidence: float = Field(..., ge=0, le=1)
     reasoning: str
     is_ambiguous: bool = False
+
+
+# --- Auth ---
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    role: str = Field(default="officer", pattern="^(officer|admin)$")
+    institution_id: Optional[str] = None
+
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user_id: str
+    email: str
+    role: str
+    institution_id: Optional[str] = None
+
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    role: str
+    institution_id: Optional[str] = None
+
+
+# --- Institutions CRUD ---
+
+
+class InstitutionCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=500)
+    type: str = Field(..., pattern="^(federal|regional|municipal)$")
+    description: Optional[str] = None
+
+
+class InstitutionUpdate(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = Field(default=None, pattern="^(federal|regional|municipal)$")
+    description: Optional[str] = None
+
+
+class InstitutionResponse(BaseModel):
+    id: str
+    name: str
+    type: str
+    description: Optional[str] = None
+    is_approved: bool
+    created_at: str
+
+
+class DepartmentCreate(BaseModel):
+    name: str = Field(..., min_length=1)
+    description: Optional[str] = None
+
+
+class DepartmentUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class DepartmentResponse(BaseModel):
+    id: str
+    institution_id: str
+    name: str
+    description: Optional[str] = None
+
+
+class ServiceCreate(BaseModel):
+    department_id: str
+    office_id: Optional[str] = None
+    name: str = Field(..., min_length=1)
+    description: str = Field(..., min_length=1)
+    example_phrasings: list[str] = []
+    required_documents: list[str] = []
+    typical_duration: Optional[str] = None
+    fees: Optional[str] = None
+
+
+class ServiceUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    example_phrasings: Optional[list[str]] = None
+    required_documents: Optional[list[str]] = None
+    typical_duration: Optional[str] = None
+    fees: Optional[str] = None
+    office_id: Optional[str] = None
+
+
+class ServiceResponse(BaseModel):
+    id: str
+    department_id: str
+    office_id: Optional[str] = None
+    name: str
+    description: str
+    example_phrasings: list[str] = []
+    required_documents: list[str] = []
+    typical_duration: Optional[str] = None
+    fees: Optional[str] = None
+    has_embedding: bool = False
