@@ -2,16 +2,29 @@
 node_modules/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .venv/
 venv/
+env/
 
-# Environment
+# Environment — never commit secrets
 .env
 .env.local
+.env.*.local
 
-# Next.js
+# Next.js build output
 .next/
 out/
+
+# Python testing & coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+dist/
+build/
 
 # IDE
 .idea/
@@ -26,5 +39,9 @@ Thumbs.db
 # Docker volumes
 pgdata/
 
-# Alembic
+# Alembic SQLite (dev only)
 *.db
+
+# Logs
+*.log
+npm-debug.log*
