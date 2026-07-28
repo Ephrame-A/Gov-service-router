@@ -1,4 +1,4 @@
-# Government Service Router 🏛️
+# Government Service Router 
 
 An LLM-powered web application that routes Ethiopian citizens to the correct government office based on their natural-language problem description. Built for Addis Ababa, Ethiopia.
 
@@ -107,8 +107,6 @@ Citizen portal: **http://localhost:3000**
 | Citizen portal | http://localhost:3000 |
 | Officer dashboard | http://localhost:3000/officer |
 | Admin approval queue | http://localhost:3000/admin |
-
-> ⚠️ **Change default passwords** before any production deployment.
 
 ---
 
@@ -226,43 +224,7 @@ gov-service-router/
 └── .env.example                     # Environment variable template
 ```
 
----
-
-## Deployment
-
-### Backend → Render
-
-1. Connect this repository to Render
-2. The `render.yaml` is pre-configured — Render will auto-detect it
-3. Set these environment variables in the Render dashboard:
-   - `DATABASE_URL` — your Render Postgres connection string
-   - `GEMINI_API_KEY` — your Gemini API key
-   - `NEXTAUTH_SECRET` — shared secret with the frontend
-4. After deploy, run one-time setup in the Render shell:
-   ```bash
-   alembic upgrade head && python -m app.db.seed && python -m app.agent.generate_embeddings
-   ```
-
-### Frontend → Vercel
-
-1. Import the `frontend/` directory in the Vercel dashboard
-2. Set environment variables:
-   - `NEXT_PUBLIC_API_URL` — your Render backend URL (e.g. `https://gov-service-router-api.onrender.com`)
-   - `NEXTAUTH_SECRET` — same secret as the backend
-   - `NEXTAUTH_URL` — your Vercel frontend URL (e.g. `https://your-app.vercel.app`)
-3. Deploy
-
----
 
 
 
-## Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/your-feature`
-3. Commit with conventional commits: `git commit -m "feat: add ..."`
-4. Open a pull request
-
----
-
-ls.
