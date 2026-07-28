@@ -1,49 +1,94 @@
-"""Intent extraction using Gemini LLM."""
+"""Intent extraction using Gemini LLM, with local fallback when no API key is set."""
+
+import json
+import logging
 
 from google import genai
 from google.genai import types
 
 from app.config import get_settings
-from app.schemas import Intent
+from app.schemas import Intent, IntentExtractionResult
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
-async def extract_intent(text: str) -> Intent:
-    """Extract structured intent from a citizen's free-text query using Gemini.
+def _fallback_intent(text: str) -> IntentExtractionResult:
+    """Use the raw query when Gemini is unavailable."""
+    return IntentExtractionResult(
+        intents=[
+            Intent(
+                category="general",
+                sub_intent="inquiry",
+                entities={},
+                query_text=text,
+            )
+        ],
+        is_multi_intent=False,
+    )
 
-    Returns an Intent with category, sub_intent, and extracted entities.
+
+async def extract_intent(text: str) -> IntentExtractionResult:
+    """Extract structured intent(s) from a citizen's free-text query.
+
+    Falls back to a single local intent when GEMINI_API_KEY is not configured.
     """
-    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    if not settings.llm_enabled:
+        return _fallback_intent(text)
 
-    response = await client.aio.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=f"""Analyze the following citizen's request to a government service center.
-Extract the intent as structured JSON.
+    try:
+        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+        response = await client.aio.models.generate_content(
+            model=settings.gemini_model,
+            contents=f"""Analyze the following citizen's request to a government service center.
+Extract ALL distinct service needs. A single message may contain multiple unrelated requests.
 
 Citizen's request: "{text}"
 
-Return a JSON object with exactly these fields:
-- "category": the broad service category (e.g., "taxation", "immigration", "transport", "civil_registration", "land", "business", "utilities", "investment")
-- "sub_intent": the specific action needed (e.g., "renewal", "new_application", "complaint", "status_check", "payment")
-- "entities": a dict of extracted entities like document types, dates, locations mentioned
+Return a JSON object with:
+- "is_multi_intent": true if the request contains 2+ distinct, unrelated service needs
+- "intents": array of objects, each with:
+  - "category": broad service category (e.g., "taxation", "immigration", "transport", "civil_registration", "land", "business", "utilities", "investment")
+  - "sub_intent": specific action (e.g., "renewal", "new_application", "complaint", "status_check", "payment")
+  - "entities": dict of extracted entities like document types, dates, locations
+  - "query_text": the portion of the citizen's text relevant to this specific need
 
-Return ONLY the JSON object, no other text.""",
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema={
-                "type": "object",
-                "properties": {
-                    "category": {"type": "string"},
-                    "sub_intent": {"type": "string"},
-                    "entities": {"type": "object"},
+If there is only one need, return is_multi_intent=false with a single intent.
+Return ONLY the JSON object.""",
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema={
+                    "type": "object",
+                    "properties": {
+                        "is_multi_intent": {"type": "boolean"},
+                        "intents": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "category": {"type": "string"},
+                                    "sub_intent": {"type": "string"},
+                                    "entities": {"type": "object"},
+                                    "query_text": {"type": "string"},
+                                },
+                                "required": ["category", "sub_intent", "entities", "query_text"],
+                            },
+                        },
+                    },
+                    "required": ["is_multi_intent", "intents"],
                 },
-                "required": ["category", "sub_intent", "entities"],
-            },
-        ),
-    )
-
-    import json
+            ),
+        )
+    except Exception as exc:  # pragma: no cover - exercised via tests with patched client
+        logger.exception("Intent extraction failed, falling back to local intent")
+        return _fallback_intent(text)
 
     data = json.loads(response.text)
-    return Intent(**data)
+    intents = [Intent(**item) for item in data["intents"]]
+    if not intents:
+        intents = [Intent(category="general", sub_intent="inquiry", entities={}, query_text=text)]
+    return IntentExtractionResult(
+        intents=intents,
+        is_multi_intent=data.get("is_multi_intent", len(intents) > 1),
+    )

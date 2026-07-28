@@ -7,7 +7,7 @@ import asyncio
 
 from sqlalchemy import select
 
-from app.agent.retrieval import get_embedding
+from app.agent.embeddings import get_embedding
 from app.db.models import Service
 from app.db.session import async_session
 

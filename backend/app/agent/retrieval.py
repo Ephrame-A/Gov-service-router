@@ -1,26 +1,13 @@
 """Embedding-based candidate retrieval using pgvector."""
 
-from google import genai
-
 from sqlalchemy import text as sql_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agent.embeddings import get_embedding
 from app.config import get_settings
 from app.schemas import Candidate
 
 settings = get_settings()
-
-
-async def get_embedding(text: str) -> list[float]:
-    """Generate an embedding vector for the given text using Gemini."""
-    client = genai.Client(api_key=settings.effective_embedding_api_key)
-
-    result = await client.aio.models.embed_content(
-        model=settings.EMBEDDING_MODEL,
-        contents=text,
-    )
-
-    return result.embeddings[0].values
 
 
 async def retrieve_candidates(
@@ -47,13 +34,13 @@ async def retrieve_candidates(
             o.working_hours,
             o.contact_phone,
             o.contact_email,
-            1 - (s.embedding <=> :embedding::vector) AS similarity
+            1 - (s.embedding <=> CAST(:embedding AS vector)) AS similarity
         FROM services s
         JOIN departments d ON s.department_id = d.id
         JOIN institutions i ON d.institution_id = i.id
         LEFT JOIN offices o ON s.office_id = o.id
         WHERE s.embedding IS NOT NULL
-        ORDER BY s.embedding <=> :embedding::vector
+        ORDER BY s.embedding <=> CAST(:embedding AS vector)
         LIMIT :k
     """)
 
