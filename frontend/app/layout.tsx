@@ -3,9 +3,9 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
-  title: "Government Service Router",
+  title: "Service Router | Find the right public office in Addis Ababa",
   description:
-    "Find the right government office for your needs — powered by AI",
+    "Describe what you need in English or Amharic and find the right public service, office, and documents in Addis Ababa.",
 };
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
+      <body className="min-h-screen antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>

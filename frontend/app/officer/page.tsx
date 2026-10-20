@@ -1,137 +1,85 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import {
-  listDepartments,
-  listServices,
-  createService,
-  refreshServiceEmbedding,
-  type Department,
-  type Service,
-} from "@/lib/api";
+import StaffShell from "@/components/StaffShell";
+import { listDepartments, listServices, createService, refreshServiceEmbedding, type Department, type Service } from "@/lib/api";
+
+const emptyForm = { department_id: "", name: "", description: "", example_phrasings: "", required_documents: "" };
 
 export default function OfficerDashboard() {
   const { data: session } = useSession();
   const accessToken = (session as { accessToken?: string })?.accessToken;
   const institutionId = (session?.user as { institutionId?: string })?.institutionId;
   const role = (session?.user as { role?: string })?.role;
-
   const [departments, setDepartments] = useState<Department[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
-    department_id: "",
-    name: "",
-    description: "",
-    example_phrasings: "",
-    required_documents: "",
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
     if (!accessToken || !institutionId) return;
-    Promise.all([
-      listDepartments(accessToken, institutionId),
-      listServices(accessToken, institutionId),
-    ])
+    Promise.all([listDepartments(accessToken, institutionId), listServices(accessToken, institutionId)])
       .then(([depts, svcs]) => {
         setDepartments(depts);
         setServices(svcs);
-        if (depts.length > 0) {
-          setForm((f) => ({ ...f, department_id: depts[0].id }));
-        }
+        if (depts.length > 0) setForm((current) => ({ ...current, department_id: depts[0].id }));
       })
+      .catch(() => setError("We couldn't load your services. Please refresh the page."))
       .finally(() => setLoading(false));
   }, [accessToken, institutionId]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessToken) return;
-    const svc = await createService(accessToken, {
-      department_id: form.department_id,
-      name: form.name,
-      description: form.description,
-      example_phrasings: form.example_phrasings.split("\n").filter(Boolean),
-      required_documents: form.required_documents.split("\n").filter(Boolean),
-    });
-    await refreshServiceEmbedding(accessToken, svc.id);
-    setServices((prev) => [...prev, { ...svc, has_embedding: true }]);
-    setShowForm(false);
-    setForm({ department_id: departments[0]?.id || "", name: "", description: "", example_phrasings: "", required_documents: "" });
+    if (!accessToken || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const svc = await createService(accessToken, {
+        department_id: form.department_id,
+        name: form.name.trim(),
+        description: form.description.trim(),
+        example_phrasings: form.example_phrasings.split("\n").map((line) => line.trim()).filter(Boolean),
+        required_documents: form.required_documents.split("\n").map((line) => line.trim()).filter(Boolean),
+      });
+      setServices((current) => [...current, svc]);
+      setShowForm(false);
+      setForm({ ...emptyForm, department_id: departments[0]?.id || "" });
+      try {
+        await refreshServiceEmbedding(accessToken, svc.id);
+        setServices((current) => current.map((item) => item.id === svc.id ? { ...item, has_embedding: true } : item));
+      } catch {
+        setError("The service was created, but search indexing did not finish. Please try again later.");
+      }
+    } catch {
+      setError("We couldn't create the service. Please check the details and try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (role === "admin") {
-    return (
-      <div className="mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4 py-12">
-        <div className="w-full rounded-[28px] border border-slate-200 bg-white p-8 shadow-xl">
-          <p className="text-lg font-semibold text-slate-900">You are signed in as admin.</p>
-          <p className="mt-2 text-slate-600">Manage institution approvals and review pending requests from here.</p>
-          <a href="/admin" className="mt-6 inline-flex rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700">
-            Go to admin dashboard →
-          </a>
-        </div>
-      </div>
-    );
+    return <StaffShell role="Admin" title="Your workspace" subtitle="Institution approvals are managed in the admin dashboard." email={session?.user?.email}><div className="staff-empty"><span aria-hidden="true">↗</span><h2>Head to the approval queue</h2><p>Review pending institution registrations and keep the service directory moving.</p><a className="staff-primary-link" href="/admin">Open admin dashboard →</a></div></StaffShell>;
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Officer Dashboard</h1>
-            <p className="text-sm text-slate-600">{session?.user?.email}</p>
-          </div>
-          <button onClick={() => signOut({ callbackUrl: "/officer/login" })} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
-            Sign out
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="rounded-2xl bg-slate-50 p-6 text-center text-slate-500">Loading your services…</div>
-        ) : (
-          <>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Services ({services.length})</h2>
-              <button onClick={() => setShowForm(!showForm)} className="rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700">
-                {showForm ? "Cancel" : "+ Add Service"}
-              </button>
-            </div>
-
-            {showForm && (
-              <form onSubmit={handleCreate} className="mb-6 space-y-3 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-                <select value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value })} className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5" required>
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
-                <input placeholder="Service name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5" required />
-                <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5" rows={2} required />
-                <textarea placeholder="Example phrasings (one per line)" value={form.example_phrasings} onChange={(e) => setForm({ ...form, example_phrasings: e.target.value })} className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5" rows={3} />
-                <textarea placeholder="Required documents (one per line)" value={form.required_documents} onChange={(e) => setForm({ ...form, required_documents: e.target.value })} className="w-full rounded-2xl border border-slate-300 bg-white px-3 py-2.5" rows={2} />
-                <button type="submit" className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">
-                  Create & Generate Embedding
-                </button>
-              </form>
-            )}
-
-            <div className="space-y-3">
-              {services.map((svc) => (
-                <div key={svc.id} className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-semibold text-slate-900">{svc.name}</h3>
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${svc.has_embedding ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-                      {svc.has_embedding ? "Searchable" : "No embedding"}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-600">{svc.description}</p>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
+    <StaffShell role="Officer" title="Your services" subtitle="Keep service information clear and ready for the people who need it." email={session?.user?.email}>
+      <div className="staff-stats"><div><span>TOTAL SERVICES</span><strong>{services.length}</strong><small>Listed in your institution</small></div><div><span>SEARCHABLE</span><strong>{services.filter((svc) => svc.has_embedding).length}</strong><small>Ready for citizen searches</small></div><div><span>DEPARTMENTS</span><strong>{departments.length}</strong><small>Organizing your services</small></div></div>
+      <section className="staff-section">
+        <div className="staff-section-heading"><div><span className="eyebrow">DIRECTORY</span><h2>Service listings</h2></div><button type="button" className="staff-primary-button" onClick={() => setShowForm(!showForm)}>{showForm ? "Close form" : "+ Add service"}</button></div>
+        {error && <div className="staff-error" role="alert">{error}</div>}
+        {showForm && <form onSubmit={handleCreate} className="staff-form">
+          <div className="staff-form-title"><h3>Add a new service</h3><p>Good descriptions help citizens find the right office.</p></div>
+          <div className="staff-form-grid"><label>Department<select value={form.department_id} onChange={(e) => setForm({ ...form, department_id: e.target.value })} required>{departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}</select></label><label>Service name<input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Business license renewal" required /></label></div>
+          <label>Description<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Describe who this service is for and what it provides" rows={3} required /></label>
+          <div className="staff-form-grid"><label>Example requests <small>One per line</small><textarea value={form.example_phrasings} onChange={(e) => setForm({ ...form, example_phrasings: e.target.value })} rows={4} placeholder="I need to renew my license" /></label><label>Required documents <small>One per line</small><textarea value={form.required_documents} onChange={(e) => setForm({ ...form, required_documents: e.target.value })} rows={4} placeholder="Current license" /></label></div>
+          <button className="staff-primary-button" type="submit" disabled={saving || departments.length === 0}>{saving ? "Creating service…" : "Create service"}</button>
+        </form>}
+        {loading ? <div className="staff-empty"><p>Loading your services…</p></div> : services.length === 0 ? <div className="staff-empty"><span aria-hidden="true">▦</span><h3>No services yet</h3><p>Add your first service to help citizens find your institution.</p></div> : <div className="staff-service-list">{services.map((svc) => <article key={svc.id} className="staff-service-card"><div className="staff-service-icon" aria-hidden="true">▦</div><div><h3>{svc.name}</h3><p>{svc.description}</p></div><span className={`staff-status ${svc.has_embedding ? "is-ready" : "is-pending"}`}>{svc.has_embedding ? "Searchable" : "Index pending"}</span></article>)}</div>}
+      </section>
+    </StaffShell>
   );
 }

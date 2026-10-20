@@ -13,83 +13,39 @@ export default function OfficerLoginPage() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      router.replace("/officer");
-    }
+    if (status === "authenticated" && session?.user) router.replace("/officer");
   }, [router, session, status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    setLoading(false);
-    if (result?.error) {
-      setError("Invalid email or password");
-      return;
-    }
-
-    if (result?.ok) {
-      router.replace("/officer");
+    try {
+      const result = await signIn("credentials", { email, password, redirect: false });
+      if (result?.error || !result?.ok) {
+        setError("Invalid email or password. Please try again.");
+      } else {
+        router.replace("/officer");
+      }
+    } catch {
+      setError("Unable to sign in right now. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(14,116,144,0.12),_transparent_55%)] px-4 py-12">
-      <div className="w-full max-w-md rounded-[28px] border border-slate-200 bg-white/90 p-8 shadow-xl backdrop-blur">
-        <div className="mb-6 text-center">
-          <p className="mb-3 inline-flex rounded-full bg-sky-100 px-3 py-1 text-sm font-semibold text-sky-700">
-            Officer access
-          </p>
-          <h1 className="text-2xl font-semibold text-slate-900">Sign in to the dashboard</h1>
-          <p className="mt-2 text-sm text-slate-600">Manage your institution&apos;s service listings securely.</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
-          )}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
-              required
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-slate-700">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2.5 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-2xl bg-sky-600 px-4 py-2.5 font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
+    <main className="login-layout">
+      <section className="login-story"><a className="login-brand" href="/"><span className="staff-brand-symbol" aria-hidden="true">↗</span><span>service<span className="brand-dot">.</span>router</span></a><div><span className="login-eyebrow">OFFICER WORKSPACE</span><h1>Better service<br /><em>starts here.</em></h1><p>Keep your institution&apos;s services clear, current, and easy for people to find.</p></div><span className="login-location">ADDIS ABABA · ETHIOPIA</span></section>
+      <section className="login-form-side"><div className="login-card"><span className="eyebrow">WELCOME BACK</span><h2>Sign in to your workspace</h2><p>Use your officer or administrator account to continue.</p>
+        <form onSubmit={handleSubmit} className="login-form">
+          {error && <div className="staff-error" role="alert">{error}</div>}
+          <label htmlFor="officer-email">Email address</label><input id="officer-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@institution.gov.et" required />
+          <label htmlFor="officer-password">Password</label><input id="officer-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required />
+          <button type="submit" disabled={loading}>{loading ? "Signing in…" : "Sign in"}<span aria-hidden="true">→</span></button>
         </form>
-
-        <p className="mt-5 text-center text-sm text-slate-500">
-          <a href="/" className="font-medium text-sky-700 transition hover:underline">
-            ← Back to citizen app
-          </a>
-        </p>
-      </div>
-    </div>
+        <a className="login-back" href="/">← Back to citizen portal</a>
+      </div></section>
+    </main>
   );
 }

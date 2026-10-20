@@ -1,67 +1,48 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import {
-  listPendingInstitutions,
-  approveInstitution,
-  type Institution,
-} from "@/lib/api";
+import StaffShell from "@/components/StaffShell";
+import { listPendingInstitutions, approveInstitution, type Institution } from "@/lib/api";
 
 export default function AdminDashboard() {
   const { data: session } = useSession();
   const accessToken = (session as { accessToken?: string })?.accessToken;
   const [pending, setPending] = useState<Institution[]>([]);
   const [loading, setLoading] = useState(true);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!accessToken) return;
     listPendingInstitutions(accessToken)
       .then(setPending)
+      .catch(() => setError("We couldn't load the approval queue. Please refresh the page."))
       .finally(() => setLoading(false));
   }, [accessToken]);
 
   const handleApprove = async (id: string) => {
-    if (!accessToken) return;
-    await approveInstitution(accessToken, id);
-    setPending((prev) => prev.filter((i) => i.id !== id));
+    if (!accessToken || approvingId) return;
+    setApprovingId(id);
+    setError(null);
+    try {
+      await approveInstitution(accessToken, id);
+      setPending((current) => current.filter((institution) => institution.id !== id));
+    } catch {
+      setError("Approval failed. Please try again.");
+    } finally {
+      setApprovingId(null);
+    }
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-xl sm:p-8">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Admin Dashboard</h1>
-            <p className="text-sm text-slate-600">Institution approval queue</p>
-          </div>
-          <button onClick={() => signOut({ callbackUrl: "/officer/login" })} className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50">
-            Sign out
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="rounded-2xl bg-slate-50 p-6 text-center text-slate-500">Loading approvals…</div>
-        ) : pending.length === 0 ? (
-          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
-            No institutions pending approval
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {pending.map((inst) => (
-              <div key={inst.id} className="flex flex-col gap-3 rounded-[20px] border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="font-semibold text-slate-900">{inst.name}</h3>
-                  <p className="text-sm text-slate-600">{inst.type} — {inst.description}</p>
-                </div>
-                <button onClick={() => handleApprove(inst.id)} className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700">
-                  Approve
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+    <StaffShell role="Admin" title="Institution approvals" subtitle="Review incoming institutions before they appear in the service directory." email={session?.user?.email}>
+      <div className="staff-stats staff-stats-single"><div><span>AWAITING REVIEW</span><strong>{pending.length}</strong><small>Institutions in your queue</small></div></div>
+      <section className="staff-section">
+        <div className="staff-section-heading"><div><span className="eyebrow">REVIEW QUEUE</span><h2>Pending institutions</h2></div><span className="staff-count">{pending.length} pending</span></div>
+        {error && <div className="staff-error" role="alert">{error}</div>}
+        {loading ? <div className="staff-empty"><p>Loading approvals…</p></div> : pending.length === 0 ? <div className="staff-empty"><span aria-hidden="true">✓</span><h3>All caught up</h3><p>There are no institutions waiting for approval.</p></div> : <div className="staff-service-list">{pending.map((inst) => <article key={inst.id} className="staff-service-card staff-approval-card"><div className="staff-service-icon" aria-hidden="true">▦</div><div><h3>{inst.name}</h3><p>{inst.type}{inst.description ? ` · ${inst.description}` : ""}</p></div><button type="button" className="staff-primary-button" disabled={approvingId === inst.id} onClick={() => handleApprove(inst.id)}>{approvingId === inst.id ? "Approving…" : "Approve →"}</button></article>)}</div>}
+      </section>
+    </StaffShell>
   );
 }

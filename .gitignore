@@ -16,6 +16,7 @@ env/
 # Next.js build output
 .next/
 out/
+*.tsbuildinfo
 
 # Python testing & coverage
 .pytest_cache/
