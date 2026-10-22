@@ -21,8 +21,9 @@ export const authOptions: NextAuthOptions = {
             institutionId: data.institution_id,
             accessToken: data.access_token,
           };
-        } catch {
-          return null;
+        } catch (error) {
+          if (error instanceof Error && error.message === "Invalid credentials") return null;
+          throw error;
         }
       },
     }),

@@ -123,7 +123,8 @@ export async function login(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) throw new Error("Invalid credentials");
+  if (res.status === 401) throw new Error("Invalid credentials");
+  if (!res.ok) throw new Error("Login service unavailable");
   return res.json();
 }
 

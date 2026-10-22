@@ -26,13 +26,13 @@ export default function StaffLoginPage() {
     try {
       const result = await signIn("credentials", { email, password, redirect: false });
       if (result?.error || !result?.ok) {
-        setError("Invalid email or password. Please try again.");
+        setError(result?.error === "CredentialsSignin" ? "Invalid email or password. Please try again." : "The login service is unavailable. Please try again shortly.");
       } else {
         const signedInSession = await getSession();
         router.replace(destinationFor((signedInSession?.user as { role?: string } | undefined)?.role));
       }
     } catch {
-      setError("Unable to sign in right now. Please try again.");
+      setError("The login service is unavailable. Please try again shortly.");
     } finally {
       setLoading(false);
     }
