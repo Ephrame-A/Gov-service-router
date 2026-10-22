@@ -8,6 +8,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface OfficeInfo {
   address: string;
+  lat?: number | null;
+  lng?: number | null;
   working_hours?: string;
   contact_phone?: string;
   contact_email?: string;

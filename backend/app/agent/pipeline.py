@@ -31,6 +31,8 @@ def _candidate_to_recommendation(
     if candidate.office_address:
         office = OfficeInfo(
             address=candidate.office_address,
+            lat=candidate.office_lat,
+            lng=candidate.office_lng,
             working_hours=candidate.working_hours,
             contact_phone=candidate.contact_phone,
             contact_email=candidate.contact_email,

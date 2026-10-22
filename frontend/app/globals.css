@@ -91,6 +91,7 @@ button:disabled { cursor: not-allowed; }
 .result-details { display: grid; gap: 12px; margin: 23px 0 0; }
 .result-detail { display: grid; grid-template-columns: 95px 1fr; gap: 16px; font-size: 13px; line-height: 1.5; }
 .result-detail dt { color: #819088; font-weight: 700; }.result-detail dd { margin: 0; color: #314940; }.result-detail a { color: #1b6554; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.result-detail .map-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12px; font-weight: 800; text-decoration: none; }.result-detail .map-link:hover { text-decoration: underline; }.map-link svg { width: 14px; height: 14px; }
 .document-list { margin-top: 25px; padding: 18px 19px; border-radius: 8px; background: #f4f7f1; }
 .document-list h4 { margin: 0 0 10px; font-size: 12px; letter-spacing: .04em; }.document-list ul { margin: 0; padding-left: 18px; color: #54675b; font-size: 13px; line-height: 1.8; }
 .match-reason { display: flex; gap: 10px; margin-top: 20px; color: #607068; font-size: 12px; line-height: 1.6; }.match-reason span { color: #bd8d31; font-size: 19px; line-height: 1; }.match-reason p { margin: 0; }

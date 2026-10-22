@@ -16,6 +16,8 @@ class QueryRequest(BaseModel):
 
 class OfficeInfo(BaseModel):
     address: str
+    lat: Optional[float] = None
+    lng: Optional[float] = None
     working_hours: Optional[str] = None
     contact_phone: Optional[str] = None
     contact_email: Optional[str] = None
@@ -79,6 +81,8 @@ class Candidate(BaseModel):
     institution_name: str
     similarity_score: float
     office_address: Optional[str] = None
+    office_lat: Optional[float] = None
+    office_lng: Optional[float] = None
     working_hours: Optional[str] = None
     contact_phone: Optional[str] = None
     contact_email: Optional[str] = None

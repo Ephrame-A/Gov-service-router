@@ -27,6 +27,15 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
 }
 
 function ResultCard({ rec, rank, primary = false }: { rec: ServiceRecommendation; rank?: number; primary?: boolean }) {
+  const mapQuery = rec.office
+    ? rec.office.lat != null && rec.office.lng != null
+      ? `${rec.office.lat},${rec.office.lng}`
+      : `${rec.institution}, ${rec.office.address}`
+    : null;
+  const mapsUrl = mapQuery
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`
+    : null;
+
   return (
     <article className={`result-card ${primary ? "result-card-primary" : ""}`}>
       <div className="result-card-header">
@@ -35,7 +44,7 @@ function ResultCard({ rec, rank, primary = false }: { rec: ServiceRecommendation
       </div>
       <dl className="result-details">
         <Detail label="Department">{rec.department}</Detail>
-        {rec.office?.address && <Detail label="Address">{rec.office.address}</Detail>}
+        {rec.office?.address && <Detail label="Address"><span>{rec.office.address}</span>{mapsUrl && <a className="map-link" href={mapsUrl} target="_blank" rel="noopener noreferrer" aria-label={`Open ${rec.institution} location in Google Maps (opens in a new tab)`}>View on Google Maps <ArrowIcon diagonal /></a>}</Detail>}
         {rec.office?.working_hours && <Detail label="Office hours">{rec.office.working_hours}</Detail>}
         {rec.office?.contact_phone && <Detail label="Phone"><a href={`tel:${rec.office.contact_phone}`}>{rec.office.contact_phone}</a></Detail>}
         {rec.office?.contact_email && <Detail label="Email"><a href={`mailto:${rec.office.contact_email}`}>{rec.office.contact_email}</a></Detail>}
