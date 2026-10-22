@@ -86,6 +86,11 @@ async def _process_single_intent(
     query_text = intent.query_text or text
     candidates = await retrieve_candidates(query_text, db)
     rerank_result = await rerank_candidates(query_text, candidates)
+    threshold = (
+        settings.FALLBACK_CONFIDENCE_THRESHOLD
+        if rerank_result.used_fallback
+        else settings.CONFIDENCE_THRESHOLD
+    )
 
     best_candidate = next(
         (c for c in candidates if c.service_id == rerank_result.best_match_id), None
@@ -96,7 +101,7 @@ async def _process_single_intent(
         if c.service_id != rerank_result.best_match_id
     ][:2]
 
-    if rerank_result.is_ambiguous and rerank_result.confidence < settings.CONFIDENCE_THRESHOLD:
+    if rerank_result.is_ambiguous and rerank_result.confidence < threshold:
         logger.info(
             "Ambiguous service match for query=%r confidence=%.3f reasoning=%s",
             text,
@@ -106,7 +111,7 @@ async def _process_single_intent(
         question = "I found more than one possible service. Could you clarify which one you need?"
         return QueryStatus.needs_clarification, None, [], question, []
 
-    if best_candidate and rerank_result.confidence >= settings.CONFIDENCE_THRESHOLD:
+    if best_candidate and rerank_result.confidence >= threshold:
         rec = _candidate_to_recommendation(
             best_candidate, rerank_result.confidence, rerank_result.reasoning
         )

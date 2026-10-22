@@ -63,4 +63,5 @@ async def test_rerank_falls_back_on_llm_error(sample_candidate, caplog):
             result = await rerank_candidates("my tax certificate expired", [sample_candidate])
 
     assert result.best_match_id == sample_candidate.service_id
+    assert result.used_fallback
     assert "falling back" in caplog.text.lower()

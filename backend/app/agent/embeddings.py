@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 def _get_model() -> SentenceTransformer:
     model_name = settings.EMBEDDING_MODEL or "all-MiniLM-L6-v2"
     try:
+        # Avoid a network metadata check on every API start when the model is cached.
+        return SentenceTransformer(model_name, local_files_only=True)
+    except Exception:
+        pass
+    try:
         return SentenceTransformer(model_name)
     except Exception as exc:
         logger.exception("Failed to load embedding model %s, falling back to all-MiniLM-L6-v2", model_name)

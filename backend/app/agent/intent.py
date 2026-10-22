@@ -1,5 +1,6 @@
 """Intent extraction using Gemini LLM, with local fallback when no API key is set."""
 
+import asyncio
 import json
 import logging
 
@@ -37,9 +38,15 @@ async def extract_intent(text: str) -> IntentExtractionResult:
         return _fallback_intent(text)
 
     try:
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        client = genai.Client(
+            api_key=settings.GEMINI_API_KEY,
+            http_options=types.HttpOptions(
+                timeout=12000,
+                retry_options=types.HttpRetryOptions(attempts=1),
+            ),
+        )
 
-        response = await client.aio.models.generate_content(
+        response = await asyncio.wait_for(client.aio.models.generate_content(
             model=settings.gemini_model,
             contents=f"""Analyze the following citizen's request to a government service center.
 Extract ALL distinct service needs. A single message may contain multiple unrelated requests.
@@ -79,7 +86,7 @@ Return ONLY the JSON object.""",
                     "required": ["is_multi_intent", "intents"],
                 },
             ),
-        )
+        ), timeout=12)
     except Exception as exc:  # pragma: no cover - exercised via tests with patched client
         logger.exception("Intent extraction failed, falling back to local intent")
         return _fallback_intent(text)

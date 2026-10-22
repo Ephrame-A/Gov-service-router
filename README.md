@@ -93,6 +93,19 @@ npm run dev
 
 Citizen portal: **http://localhost:3000**
 
+### If a search cannot be completed
+
+The frontend needs the API at `http://localhost:8000` and a populated PostgreSQL database; the example requests in the UI are prompts, not mock search results. Check `http://localhost:8000/health` first. If it is unavailable, start PostgreSQL and run the backend from `backend/` with that directory's `.venv`:
+
+```bash
+docker compose up postgres -d
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --reload --port 8000
+```
+
+If this is a new database, run the migrations, seed script, and embedding generator from `backend/` as described above. **Do not rerun the seed script on a populated database:** it clears the existing catalog and users before inserting sample records.
+
 ---
 
 ## Default Accounts (seeded)

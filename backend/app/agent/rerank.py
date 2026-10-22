@@ -1,5 +1,6 @@
 """LLM-based re-ranking of retrieval candidates, with local fallback."""
 
+import asyncio
 import json
 import logging
 
@@ -21,6 +22,7 @@ def _fallback_rerank(text: str, candidates: list[Candidate]) -> RerankResult:
             confidence=0.0,
             reasoning="No matching services found in the database.",
             is_ambiguous=False,
+            used_fallback=True,
         )
 
     best = candidates[0]
@@ -43,6 +45,7 @@ def _fallback_rerank(text: str, candidates: list[Candidate]) -> RerankResult:
         confidence=confidence,
         reasoning=reasoning,
         is_ambiguous=is_ambiguous,
+        used_fallback=True,
     )
 
 
@@ -67,9 +70,15 @@ async def rerank_candidates(text: str, candidates: list[Candidate]) -> RerankRes
     )
 
     try:
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        client = genai.Client(
+            api_key=settings.GEMINI_API_KEY,
+            http_options=types.HttpOptions(
+                timeout=12000,
+                retry_options=types.HttpRetryOptions(attempts=1),
+            ),
+        )
 
-        response = await client.aio.models.generate_content(
+        response = await asyncio.wait_for(client.aio.models.generate_content(
             model=settings.gemini_model,
             contents=f"""You are a government service routing assistant. A citizen has described their problem,
 and we've retrieved the following candidate services from our database.
@@ -104,7 +113,7 @@ Return ONLY the JSON object.""",
                     "required": ["best_match_id", "confidence", "reasoning", "is_ambiguous"],
                 },
             ),
-        )
+        ), timeout=12)
     except Exception as exc:  # pragma: no cover - exercised via tests with patched client
         logger.exception("Rerank failed, falling back to local reranking")
         return _fallback_rerank(text, candidates)

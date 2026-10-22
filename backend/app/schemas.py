@@ -92,6 +92,7 @@ class RerankResult(BaseModel):
     confidence: float = Field(..., ge=0, le=1)
     reasoning: str
     is_ambiguous: bool = False
+    used_fallback: bool = False
 
 
 # --- Auth ---

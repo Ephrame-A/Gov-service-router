@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # Pipeline tuning
     CONFIDENCE_THRESHOLD: float = 0.75
+    FALLBACK_CONFIDENCE_THRESHOLD: float = 0.60
     RETRIEVAL_TOP_K: int = 5
 
     # Auth
