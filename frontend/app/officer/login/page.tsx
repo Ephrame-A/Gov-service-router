@@ -1,19 +1,22 @@
 "use client";
 
-import { signIn, useSession } from "next-auth/react";
+import { getSession, signIn, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
-export default function OfficerLoginPage() {
+export default function StaffLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const isAdminLogin = usePathname().startsWith("/admin");
   const { data: session, status } = useSession();
 
+  const destinationFor = (role?: string) => role === "admin" ? "/admin" : "/officer";
+
   useEffect(() => {
-    if (status === "authenticated" && session?.user) router.replace("/officer");
+    if (status === "authenticated" && session?.user) router.replace(destinationFor((session.user as { role?: string }).role));
   }, [router, session, status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,7 +28,8 @@ export default function OfficerLoginPage() {
       if (result?.error || !result?.ok) {
         setError("Invalid email or password. Please try again.");
       } else {
-        router.replace("/officer");
+        const signedInSession = await getSession();
+        router.replace(destinationFor((signedInSession?.user as { role?: string } | undefined)?.role));
       }
     } catch {
       setError("Unable to sign in right now. Please try again.");
@@ -36,7 +40,7 @@ export default function OfficerLoginPage() {
 
   return (
     <main className="login-layout">
-      <section className="login-story"><a className="login-brand" href="/"><span className="staff-brand-symbol" aria-hidden="true">↗</span><span>service<span className="brand-dot">.</span>router</span></a><div><span className="login-eyebrow">OFFICER WORKSPACE</span><h1>Better service<br /><em>starts here.</em></h1><p>Keep your institution&apos;s services clear, current, and easy for people to find.</p></div><span className="login-location">ADDIS ABABA · ETHIOPIA</span></section>
+      <section className="login-story"><a className="login-brand" href="/"><span className="staff-brand-symbol" aria-hidden="true">↗</span><span>service<span className="brand-dot">.</span>router</span></a><div><span className="login-eyebrow">{isAdminLogin ? "ADMIN WORKSPACE" : "OFFICER WORKSPACE"}</span><h1>Better service<br /><em>starts here.</em></h1><p>{isAdminLogin ? "Review institution registrations and keep the service directory moving." : "Keep your institution&apos;s services clear, current, and easy for people to find."}</p></div><span className="login-location">ADDIS ABABA · ETHIOPIA</span></section>
       <section className="login-form-side"><div className="login-card"><span className="eyebrow">WELCOME BACK</span><h2>Sign in to your workspace</h2><p>Use your officer or administrator account to continue.</p>
         <form onSubmit={handleSubmit} className="login-form">
           {error && <div className="staff-error" role="alert">{error}</div>}

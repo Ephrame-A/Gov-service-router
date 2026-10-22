@@ -12,9 +12,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname.startsWith("/admin")) {
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
     if (!token || token.role !== "admin") {
-      return NextResponse.redirect(new URL("/officer/login", request.url));
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   }
 
