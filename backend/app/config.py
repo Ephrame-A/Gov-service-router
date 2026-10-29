@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     NEXTAUTH_SECRET: str = ""
     NEXTAUTH_URL: str = "http://localhost:3000"
     NEXT_PUBLIC_API_URL: str = "http://localhost:8000"
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
+    SEED_DEMO_USERS: bool = False
 
     model_config = {
         # Load from project root (.env) or backend/.env when running locally

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: gov-service-router-api
+    name: tequami-api
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
@@ -23,6 +23,8 @@ services:
       - key: RETRIEVAL_TOP_K
         value: "5"
       - key: NEXTAUTH_SECRET
+        sync: false
+      - key: CORS_ORIGINS
         sync: false
 
 databases:

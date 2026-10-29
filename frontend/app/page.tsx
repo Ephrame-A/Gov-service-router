@@ -118,7 +118,7 @@ export default function HomePage() {
   return (
     <div className="site-shell">
       <header className="site-header">
-        <a className="brand" href="/" aria-label="Service Router home"><RouteMark /><span><strong>service<span className="brand-dot">.</span>router</strong><small>ADDIS ABABA</small></span></a>
+        <a className="brand" href="/" aria-label="Tequami home"><RouteMark /><span><strong>Tequami</strong><small>ADDIS ABABA</small></span></a>
         <nav aria-label="Main navigation" className="site-nav"><a href="#how-it-works">How it works</a><a className="nav-portal" href="/officer/login">Officer portal <ArrowIcon diagonal /></a></nav>
       </header>
 

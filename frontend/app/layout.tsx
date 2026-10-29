@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 
 export const metadata: Metadata = {
-  title: "Service Router | Find the right public office in Addis Ababa",
+  title: "Tequami | Find the right public office in Addis Ababa",
   description:
     "Describe what you need in English or Amharic and find the right public service, office, and documents in Addis Ababa.",
 };

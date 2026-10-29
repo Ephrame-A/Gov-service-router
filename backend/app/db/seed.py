@@ -1069,12 +1069,13 @@ async def seed_database():
             count = result.scalar()
             print(f"  {name}: {count}")
 
-        # Seed default admin and officer accounts (skip if already exist)
+        # Demo credentials must be explicitly enabled for local development.
         from app.auth import hash_password
+        from app.config import get_settings
         from app.db.models import User
 
         existing = await session.execute(select(User).limit(1))
-        if not existing.scalar_one_or_none():
+        if get_settings().SEED_DEMO_USERS and not existing.scalar_one_or_none():
             inst_result = await session.execute(select(Institution).limit(1))
             first_inst = inst_result.scalar_one()
             session.add(

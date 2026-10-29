@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import require_roles
-from app.db.models import Department, Institution, Service, User
+from app.db.models import Department, Institution, Office, Service, User
 from app.db.session import get_db
 from app.schemas import (
     DepartmentCreate,
@@ -69,6 +69,15 @@ async def _check_institution_access(
     if user.role == "officer" and user.institution_id != institution_id:
         raise HTTPException(status_code=403, detail="Cannot access another institution")
     return institution
+
+
+async def _check_office_access(
+    office_id: uuid.UUID, institution_id: uuid.UUID, db: AsyncSession
+) -> None:
+    result = await db.execute(select(Office).where(Office.id == office_id))
+    office = result.scalar_one_or_none()
+    if not office or office.institution_id != institution_id:
+        raise HTTPException(status_code=400, detail="Office must belong to the service institution")
 
 
 # --- Institutions ---
@@ -253,6 +262,8 @@ async def create_service(
     await _check_institution_access(dept.institution_id, user, db)
 
     office_id = uuid.UUID(body.office_id) if body.office_id else None
+    if office_id:
+        await _check_office_access(office_id, dept.institution_id, db)
     service = Service(
         department_id=dept.id,
         office_id=office_id,
@@ -292,7 +303,9 @@ async def update_service(
         if val is not None:
             setattr(service, field, val)
     if body.office_id is not None:
-        service.office_id = uuid.UUID(body.office_id)
+        office_id = uuid.UUID(body.office_id)
+        await _check_office_access(office_id, dept.institution_id, db)
+        service.office_id = office_id
     # Clear embedding so it gets regenerated
     service.embedding = None
     await db.commit()

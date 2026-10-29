@@ -5,7 +5,8 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+import jwt
+from jwt import InvalidTokenError
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,6 +21,13 @@ security = HTTPBearer(auto_error=False)
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
+
+
+def get_jwt_secret() -> str:
+    secret = settings.NEXTAUTH_SECRET
+    if len(secret) < 32 or secret.startswith(("change-me", "replace-with")):
+        raise RuntimeError("NEXTAUTH_SECRET must be a unique random value of at least 32 characters")
+    return secret
 
 
 def hash_password(password: str) -> str:
@@ -38,13 +46,11 @@ def create_access_token(user_id: str, role: str, institution_id: str | None) -> 
         "institution_id": institution_id,
         "exp": expire,
     }
-    secret = settings.NEXTAUTH_SECRET or settings.GEMINI_API_KEY or "dev-secret-change-me"
-    return jwt.encode(payload, secret, algorithm=ALGORITHM)
+    return jwt.encode(payload, get_jwt_secret(), algorithm=ALGORITHM)
 
 
 def decode_token(token: str) -> dict:
-    secret = settings.NEXTAUTH_SECRET or settings.GEMINI_API_KEY or "dev-secret-change-me"
-    return jwt.decode(token, secret, algorithms=[ALGORITHM])
+    return jwt.decode(token, get_jwt_secret(), algorithms=[ALGORITHM])
 
 
 async def get_current_user(
@@ -57,7 +63,7 @@ async def get_current_user(
     try:
         payload = decode_token(credentials.credentials)
         user_id = uuid.UUID(payload["sub"])
-    except (JWTError, ValueError, KeyError):
+    except (InvalidTokenError, ValueError, KeyError):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
     result = await db.execute(select(User).where(User.id == user_id))

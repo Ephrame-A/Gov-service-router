@@ -6,17 +6,20 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import query, feedback, auth, institutions, admin
+from app.auth import get_jwt_secret
+from app.config import get_settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
     # Tables are managed via Alembic migrations, not auto-create
+    get_jwt_secret()
     yield
 
 
 app = FastAPI(
-    title="Government Service Router",
+    title="Tequami",
     description="Routes citizens to the correct government office based on their problem description.",
     version="0.1.0",
     lifespan=lifespan,
@@ -24,10 +27,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[origin.strip() for origin in get_settings().CORS_ORIGINS.split(",") if origin.strip()],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(query.router, prefix="/api", tags=["query"])
@@ -48,7 +51,7 @@ async def root():
 
     s = get_settings()
     return {
-        "service": "Government Service Router API",
+        "service": "Tequami API",
         "docs": "/docs",
         "llm_enabled": s.llm_enabled,
         "gemini_model": s.gemini_model,

@@ -1,4 +1,4 @@
-# Government Service Router 
+# Tequami
 
 An LLM-powered web application that routes Ethiopian citizens to the correct government office based on their natural-language problem description. Built for Addis Ababa, Ethiopia.
 
@@ -52,7 +52,8 @@ git clone [<repo-url>](https://github.com/Ephrame-A/Gov-service-router)
 cd gov-service-router
 
 cp .env.example .env
-# Edit .env — set GEMINI_API_KEY and NEXTAUTH_SECRET (any random 32-char string)
+# Edit .env — set GEMINI_API_KEY and a unique NEXTAUTH_SECRET of at least 32 characters.
+# Example: python -c 'import secrets; print(secrets.token_urlsafe(48))'
 ```
 
 ### 2. Start PostgreSQL
@@ -67,12 +68,13 @@ docker compose up postgres -d
 cd backend
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
+# For running backend tests: pip install -r requirements-dev.txt
 
 # Apply DB migrations
 alembic upgrade head
 
-# Seed default institutions, services, and users
-python -m app.db.seed
+# Seed default institutions and services. Add demo users only for local testing.
+SEED_DEMO_USERS=true python -m app.db.seed
 
 # Generate vector embeddings for all services
 python -m app.agent.generate_embeddings
@@ -86,8 +88,10 @@ API docs available at: http://localhost:8000/docs
 ### 4. Frontend Setup
 
 ```bash
-cd frontend
+cd ../frontend
 npm install
+# Copy NEXTAUTH_SECRET from the root .env into frontend/.env.local.
+# Keep NEXT_PUBLIC_API_URL=http://localhost:8000 and NEXTAUTH_URL=http://localhost:3000.
 npm run dev
 ```
 
@@ -108,7 +112,13 @@ If this is a new database, run the migrations, seed script, and embedding genera
 
 ---
 
-## Default Accounts (seeded)
+## Local demo accounts (only when `SEED_DEMO_USERS=true`)
+
+Never enable demo users in production. Existing installations that already contain these accounts must remove them or replace their passwords before deployment.
+
+Before deployment, set `NEXTAUTH_SECRET` to a unique random value in both the backend and frontend, set `CORS_ORIGINS` to the exact HTTPS frontend origin, and set the frontend's `NEXT_PUBLIC_API_URL` and `NEXTAUTH_URL` to the deployed HTTPS URLs. The API refuses to start with an empty or example signing secret. Account creation through `/api/auth/register` requires an existing admin token.
+
+For the first production administrator, run `python -m app.db.create_admin admin@example.gov.et` from `backend/` after migrations. The command prompts for a password without putting it in shell history. Create the initial catalog with `python -m app.db.seed` only on a fresh database; the seed script deletes existing records before inserting samples. Apply rate limits to public `/api/query` and `/api/auth/login` at the edge before opening the service to the internet.
 
 | Role | Email | Password |
 |---|---|---|

@@ -1,7 +1,7 @@
 """Unit tests for local embedding generation."""
 
 import logging
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest
@@ -22,19 +22,22 @@ def test_encode_text():
 
 @pytest.mark.asyncio
 async def test_get_embedding_async():
-    with patch("app.agent.embeddings.encode_text", return_value=[0.5, 0.6]):
+    with patch("app.agent.embeddings.asyncio.to_thread", new=AsyncMock(return_value=[0.5, 0.6])) as to_thread:
         result = await get_embedding("hello")
     assert result == [0.5, 0.6]
+    to_thread.assert_called_once_with(encode_text, "hello")
 
 
 def test_get_model_falls_back_when_model_load_fails(caplog):
-    with patch("app.agent.embeddings.SentenceTransformer", side_effect=[RuntimeError("boom"), MagicMock()]) as mock_model:
-        with caplog.at_level(logging.ERROR):
-            with patch("app.agent.embeddings._get_model.cache_clear"):
-                from app.agent import embeddings
+    from app.agent import embeddings
 
-                embeddings._get_model.cache_clear()
+    embeddings._get_model.cache_clear()
+    try:
+        with patch("app.agent.embeddings.SentenceTransformer", side_effect=[RuntimeError("boom"), RuntimeError("boom"), MagicMock()]):
+            with caplog.at_level(logging.ERROR):
                 result = embeddings._get_model()
+    finally:
+        embeddings._get_model.cache_clear()
 
     assert result is not None
     assert "falling back" in caplog.text.lower()
