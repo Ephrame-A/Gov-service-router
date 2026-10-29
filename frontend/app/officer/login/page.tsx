@@ -40,7 +40,7 @@ export default function StaffLoginPage() {
 
   return (
     <main className="login-layout">
-      <section className="login-story"><a className="login-brand" href="/"><span className="staff-brand-symbol" aria-hidden="true">↗</span><span>Tequami</span></a><div><span className="login-eyebrow">{isAdminLogin ? "ADMIN WORKSPACE" : "OFFICER WORKSPACE"}</span><h1>Better service<br /><em>starts here.</em></h1><p>{isAdminLogin ? "Review institution registrations and keep the service directory moving." : "Keep your institution&apos;s services clear, current, and easy for people to find."}</p></div><span className="login-location">ADDIS ABABA · ETHIOPIA</span></section>
+      <section className="login-story"><a className="login-brand" href="/"><span className="staff-brand-symbol" aria-hidden="true">↗</span><span>Tequami</span></a><div><span className="login-eyebrow">{isAdminLogin ? "ADMIN WORKSPACE" : "OFFICER WORKSPACE"}</span><h1>{isAdminLogin ? <>Review institution<br /><em>registrations.</em></> : <>Keep service details<br /><em>up to date.</em></>}</h1><p>{isAdminLogin ? "Check pending institutions before their services appear in the directory." : "Manage the services and information people use to find your institution."}</p></div><span className="login-location">ADDIS ABABA · ETHIOPIA</span></section>
       <section className="login-form-side"><div className="login-card"><span className="eyebrow">WELCOME BACK</span><h2>Sign in to your workspace</h2><p>Use your officer or administrator account to continue.</p>
         <form onSubmit={handleSubmit} className="login-form">
           {error && <div className="staff-error" role="alert">{error}</div>}

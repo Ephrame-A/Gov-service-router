@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { submitQuery, submitFeedback, type QueryResponse, type ServiceRecommendation } from "@/lib/api";
 
 const examples = [
-  "I need to renew my passport",
+  "I lost my passport",
   "How do I register a new business?",
   "I need a birth certificate for my child",
   "My shop's tax certificate expired",
@@ -50,7 +50,7 @@ function ResultCard({ rec, rank, primary = false }: { rec: ServiceRecommendation
         {rec.office?.contact_email && <Detail label="Email"><a href={`mailto:${rec.office.contact_email}`}>{rec.office.contact_email}</a></Detail>}
       </dl>
       {rec.required_documents.length > 0 && <div className="document-list"><h4>Documents to prepare</h4><ul>{rec.required_documents.map((doc, i) => <li key={`${doc}-${i}`}>{doc}</li>)}</ul></div>}
-      <div className="match-reason"><span aria-hidden="true">✦</span><p>{rec.explanation}</p></div>
+      <div className="match-reason"><strong>Why this matches</strong><p>{rec.explanation}</p></div>
     </article>
   );
 }
@@ -124,23 +124,22 @@ export default function HomePage() {
 
       <main>
         <section className="hero" aria-labelledby="hero-title">
-          <div className="hero-art" aria-hidden="true"><span className="art-ring art-ring-one" /><span className="art-ring art-ring-two" /><span className="art-ring art-ring-three" /><span className="art-node art-node-one" /><span className="art-node art-node-two" /></div>
           <div className="hero-copy">
-            <p className="hero-eyebrow"><span className="eyebrow-line" /> YOUR CITY, MADE EASIER</p>
-            <h1 id="hero-title">The right office.<br /><em>A clearer way</em><br />forward.</h1>
-            <p className="hero-lead">Government services can be hard to navigate. Tell us what you need in your own words, and we&apos;ll help you find where to go and what to bring.</p>
-            <div className="hero-location"><span className="location-dot" /> Made for Addis Ababa <span className="hero-separator" /> English &amp; Amharic requests</div>
+            <p className="hero-eyebrow">PUBLIC SERVICES IN ADDIS ABABA</p>
+            <h1 id="hero-title">Need a public service?<br /><em>Start with your situation.</em></h1>
+            <p className="hero-lead">Lost a document, registering a business, or sorting out a tax record? Describe the problem. Tequami will show a likely service, the office details, and documents to check before you go.</p>
+            <div className="hero-location">Search in English or Amharic</div>
           </div>
 
           <div className="finder-panel" id="find-a-service">
-            <div className="finder-heading"><span className="finder-icon" aria-hidden="true">↗</span><div><span className="eyebrow">LET&apos;S GET STARTED</span><h2>What do you need help with?</h2></div></div>
-            <p className="finder-intro">A sentence or two is enough. You can write in English or Amharic.</p>
+            <div className="finder-heading"><div><span className="eyebrow">FIND A SERVICE</span><h2>What happened, or what do you need?</h2></div></div>
+            <p className="finder-intro">Use your own words. You do not need to know the name of the office.</p>
             <form onSubmit={handleSubmit}>
               <label className="field-label" htmlFor="service-query">Describe your request</label>
               <textarea ref={textareaRef} id="service-query" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="For example, I need to renew my business license..." rows={5} disabled={loading} />
               <button className="submit-button" type="submit" disabled={loading || !query.trim()}><span>{loading ? "Finding the right service…" : "Find my service"}</span><span className="submit-arrow">{loading ? <span className="loading-spinner" /> : <ArrowIcon />}</span></button>
             </form>
-            <div className="finder-examples"><span className="examples-label">NEED AN IDEA? TRY ONE OF THESE</span><div className="example-grid">{examples.map((example) => <button key={example} type="button" onClick={() => chooseExample(example)} disabled={loading}>{example}<span aria-hidden="true">↗</span></button>)}</div></div>
+            <div className="finder-examples"><span className="examples-label">EXAMPLE REQUESTS</span><div className="example-grid">{examples.map((example) => <button key={example} type="button" onClick={() => chooseExample(example)} disabled={loading}>{example}</button>)}</div></div>
           </div>
         </section>
 
@@ -159,12 +158,12 @@ export default function HomePage() {
         </section>}
 
         <section className="how-section" id="how-it-works" aria-labelledby="how-title">
-          <div className="how-header"><div><span className="eyebrow">SIMPLE BY DESIGN</span><h2 id="how-title">From question to<br /><em>the right direction.</em></h2></div><p>No need to know the name of an office or department. Start with your situation, and we&apos;ll guide you from there.</p></div>
-          <div className="steps-grid"><div className="step-card"><span className="step-number">01</span><span className="step-symbol" aria-hidden="true">✎</span><h3>Tell us your situation</h3><p>Describe what you need in everyday language, in English or Amharic.</p></div><div className="step-card"><span className="step-number">02</span><span className="step-symbol" aria-hidden="true">◎</span><h3>Find your service</h3><p>We match your request with a relevant institution and department.</p></div><div className="step-card"><span className="step-number">03</span><span className="step-symbol" aria-hidden="true">↗</span><h3>Go prepared</h3><p>See the office details and documents to check before your visit.</p></div></div>
+          <div className="how-header"><div><span className="eyebrow">WHAT THE RESULTS SHOW</span><h2 id="how-title">Useful details<br /><em>before you visit.</em></h2></div><p>Tequami suggests a service from the directory. Confirm the requirements with the office before making the trip.</p></div>
+          <div className="steps-grid"><div className="step-card"><span className="step-number">01 / SERVICE</span><h3>The likely service</h3><p>See the service name, institution, department, and why it may fit your request.</p></div><div className="step-card"><span className="step-number">02 / OFFICE</span><h3>Where to go</h3><p>Find the office address, available contact details, and a Google Maps link when location data is available.</p></div><div className="step-card"><span className="step-number">03 / DOCUMENTS</span><h3>What to check</h3><p>Review listed documents and office hours, then verify current requirements before visiting.</p></div></div>
         </section>
       </main>
 
-      <footer className="site-footer"><div className="footer-brand"><RouteMark /><span>service<span className="brand-dot">.</span>router</span></div><p>Helping Addis Ababa find its way through public services.</p><span>Verify requirements with the relevant office before visiting.</span></footer>
+      <footer className="site-footer"><div className="footer-brand"><RouteMark /><span>Tequami</span></div><p>Public service guidance for Addis Ababa.</p><span>Verify requirements with the relevant office before visiting.</span></footer>
     </div>
   );
 }
