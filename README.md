@@ -120,6 +120,10 @@ Before deployment, set `NEXTAUTH_SECRET` to a unique random value in both the ba
 
 For the first production administrator, run `python -m app.db.create_admin admin@example.gov.et` from `backend/` after migrations. The command prompts for a password without putting it in shell history. Create the initial catalog with `python -m app.db.seed` only on a fresh database; the seed script deletes existing records before inserting samples. Apply rate limits to public `/api/query` and `/api/auth/login` at the edge before opening the service to the internet.
 
+### Officer onboarding
+
+For now, officer requests are handled outside Tequami. Verify the person and their institution through an official channel, sign in at `/admin`, then select an approved institution and create the officer account. If the institution is missing, add it from the admin page after verification. Share the temporary password privately; the officer can change it from the staff portal after signing in. Public self-registration and creation of additional admins through the API are disabled.
+
 | Role | Email | Password |
 |---|---|---|
 | Admin | `admin@govrouter.et` | `admin123` |

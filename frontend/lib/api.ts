@@ -76,6 +76,14 @@ export interface Institution {
   created_at: string;
 }
 
+export interface Officer {
+  id: string;
+  email: string;
+  role: "officer";
+  institution_id: string;
+  institution_name: string;
+}
+
 // --- Citizen API ---
 
 export async function submitQuery(
@@ -202,6 +210,59 @@ export async function listPendingInstitutions(
   });
   if (!res.ok) throw new Error("Failed to load pending institutions");
   return res.json();
+}
+
+export async function listInstitutions(token: string): Promise<Institution[]> {
+  const res = await fetch(`${API_URL}/api/institutions`, { headers: authHeaders(token) });
+  if (!res.ok) throw new Error("Failed to load institutions");
+  return res.json();
+}
+
+export async function createInstitution(
+  token: string,
+  data: { name: string; type: "federal" | "regional" | "municipal"; description: string }
+): Promise<Institution> {
+  const res = await fetch(`${API_URL}/api/institutions`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Could not add the institution.");
+  return res.json();
+}
+
+export async function listOfficers(token: string): Promise<Officer[]> {
+  const res = await fetch(`${API_URL}/api/admin/officers`, { headers: authHeaders(token) });
+  if (!res.ok) throw new Error("Failed to load officers");
+  return res.json();
+}
+
+export async function createOfficer(
+  token: string,
+  data: { email: string; password: string; institution_id: string }
+): Promise<Officer> {
+  const res = await fetch(`${API_URL}/api/auth/register`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ ...data, role: "officer" }),
+  });
+  if (res.status === 409) throw new Error("An account with this email already exists.");
+  if (!res.ok) throw new Error("Could not create the officer account.");
+  return res.json();
+}
+
+export async function changePassword(
+  token: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/auth/change-password`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  if (res.status === 400) throw new Error("Current password is incorrect.");
+  if (!res.ok) throw new Error("Could not change password.");
 }
 
 export async function approveInstitution(

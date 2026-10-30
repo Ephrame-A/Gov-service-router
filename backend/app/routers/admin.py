@@ -7,9 +7,32 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import require_roles
 from app.db.models import Institution, User
 from app.db.session import get_db
-from app.schemas import InstitutionResponse
+from app.schemas import InstitutionResponse, OfficerResponse
 
 router = APIRouter()
+
+
+@router.get("/admin/officers", response_model=list[OfficerResponse])
+async def list_officers(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(require_roles("admin")),
+):
+    result = await db.execute(
+        select(User, Institution.name)
+        .join(Institution, User.institution_id == Institution.id)
+        .where(User.role == "officer")
+        .order_by(User.email)
+    )
+    return [
+        OfficerResponse(
+            id=str(officer.id),
+            email=officer.email,
+            role=officer.role,
+            institution_id=str(officer.institution_id),
+            institution_name=institution_name,
+        )
+        for officer, institution_name in result.all()
+    ]
 
 
 @router.get("/admin/pending-institutions", response_model=list[InstitutionResponse])

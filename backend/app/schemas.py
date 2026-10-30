@@ -1,7 +1,7 @@
 """Pydantic request/response models for the API."""
 
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -107,11 +107,16 @@ class LoginRequest(BaseModel):
     password: str = Field(..., min_length=6)
 
 
+class PasswordChangeRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=12)
+
+
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str = Field(..., min_length=6)
-    role: str = Field(default="officer", pattern="^(officer|admin)$")
-    institution_id: Optional[str] = None
+    password: str = Field(..., min_length=12)
+    role: Literal["officer"] = "officer"
+    institution_id: str
 
 
 class AuthResponse(BaseModel):
@@ -128,6 +133,10 @@ class UserResponse(BaseModel):
     email: str
     role: str
     institution_id: Optional[str] = None
+
+
+class OfficerResponse(UserResponse):
+    institution_name: str
 
 
 # --- Institutions CRUD ---

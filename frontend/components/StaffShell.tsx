@@ -25,7 +25,7 @@ export default function StaffShell({
         <div className="staff-sidebar-label">WORKSPACE</div>
         <a className="staff-nav-active" href={role === "Admin" ? "/admin" : "/officer"}><span aria-hidden="true">▦</span> Dashboard</a>
         <a className="staff-nav-link" href="/"><span aria-hidden="true">↗</span> Citizen portal</a>
-        <div className="staff-sidebar-bottom"><span>{role} access</span><button type="button" onClick={() => signOut({ callbackUrl: role === "Admin" ? "/admin/login" : "/officer/login" })}>Sign out <span aria-hidden="true">↗</span></button></div>
+        <div className="staff-sidebar-bottom"><span>{role} access</span><a className="staff-password-link" href="/account">Change password</a><button type="button" onClick={() => signOut({ callbackUrl: role === "Admin" ? "/admin/login" : "/officer/login" })}>Sign out <span aria-hidden="true">↗</span></button></div>
       </aside>
       <div className="staff-main">
         <header className="staff-topbar"><span>Tequami / {role} workspace</span><span className="staff-user">{email || role}</span></header>

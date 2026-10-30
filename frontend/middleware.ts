@@ -18,9 +18,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  if (pathname.startsWith("/account") && !token) {
+    return NextResponse.redirect(new URL("/officer/login", request.url));
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/officer/:path*", "/admin/:path*"],
+  matcher: ["/officer/:path*", "/admin/:path*", "/account/:path*"],
 };
